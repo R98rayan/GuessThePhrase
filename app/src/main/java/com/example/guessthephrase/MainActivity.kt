@@ -1,5 +1,7 @@
 package com.example.guessthephrase
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -13,11 +15,15 @@ class MainActivity : AppCompatActivity() {
     lateinit var textInput: TextView
     lateinit var blackText: TextView
     lateinit var outText: TextView
+    lateinit var wonText: TextView
+
+    private lateinit var sharedPreferences: SharedPreferences
 
     var phrase = "Hello World"
     var stars = ""
     var chars = ArrayList<Char>()
     var guess = 10
+    var wins = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,10 +35,16 @@ class MainActivity : AppCompatActivity() {
         textInput = findViewById(R.id.textInput)
         blackText = findViewById(R.id.blackText)
         outText = findViewById(R.id.outText)
-
+        wonText = findViewById(R.id.wonText)
         outText.visibility = View.INVISIBLE
 
         createStars()
+
+        sharedPreferences = this.getSharedPreferences(
+        getString(R.string.preference_file_key), Context.MODE_PRIVATE)
+        wins = sharedPreferences.getInt("wins", 0).toInt()  // --> retrieves data from Shared Preferences
+        wonText.text = "your wins score is $wins"
+
     }
 
     private fun guessText() {
@@ -42,7 +54,9 @@ class MainActivity : AppCompatActivity() {
         }
         else {
             if(textInput.text.toString().trim().equals(phrase, true)){
+                wins++
                 restart("You won!\ntry again?")
+                wonText.text = "your wins score is $wins"
             }
             else {
                 guess--
@@ -62,6 +76,12 @@ class MainActivity : AppCompatActivity() {
         outText.text = outputText
         updateBlackText()
         textInput.text = ""
+
+        // We can save data with the following code
+        with(sharedPreferences.edit()) {
+            putInt("wins", wins)
+            apply()
+        }
     }
 
     private fun showLetter(letter: Char){
